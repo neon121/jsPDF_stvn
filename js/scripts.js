@@ -1,3 +1,4 @@
+//you can call first PDFGenerator.preload(); here for loading not user depended files.
 PDFGenerator.files.push({path: '_adds/graph1.jpg', type: 'img', img: {w: 180, h: 105}});
 PDFGenerator.files.push({path: '_adds/graph2.jpg', type: 'img', img: {w: 180, h: 105}});
 PDFGenerator.files.push({path: '_adds/circle1.jpg', type: 'img', img: {w: 49.5, h: 49.5}});
@@ -44,5 +45,7 @@ pdf.setValues({
     circles: ['_adds/circle1.jpg', '_adds/circle2.jpg']
 });
 pdf.ready(function () {
+    //here ajax loading animation (if you have any) can be hidden
+    //pdf.generatePDF('save'); will send file to user's browser for download
     document.getElementById('output').data = pdf.generatePDF('datauristring');
 });
