@@ -432,6 +432,9 @@ PDFGenerator.files = [
     {path: 'FuturaPT-Bold.ttf', type: 'font', loaded: false, font: {name: 'Futura PT', type: 'Bold'}},
     {path: 'FuturaPT-Book.ttf', type: 'font', loaded: false, font: {name: 'Futura PT', type: 'Book'}},
     {path: 'FuturaPT-Demi.ttf', type: 'font', loaded: false, font: {name: 'Futura PT', type: 'Demi'}},
+    //{path: 'FuturaPT-Bold-Italic.ttf', type: 'font', loaded: false, font: {name: 'Futura PT', type: 'Bold Italic'}},
+    //{path: 'FuturaPT-Book-Italic.ttf', type: 'font', loaded: false, font: {name: 'Futura PT', type: 'Book Italic'}},
+    //{path: 'FuturaPT-Demi-Italic.ttf', type: 'font', loaded: false, font: {name: 'Futura PT', type: 'Demi Italic'}},
     {path: 'logo/1.png', type: 'img', loaded: false, img: {w: 16.939, h: 6.191}},
     {path: 'logo/2.png', type: 'img', loaded: false, img: {w: 12.053, h: 6.836}},
     {path: 'logo/3.png', type: 'img', loaded: false, img: {w: 22.317, h: 7.097}}
