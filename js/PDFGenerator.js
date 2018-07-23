@@ -8,21 +8,22 @@ class PDFGenerator {
                         this.doc.addFileToVFS(file.path, btoa(file.loaded));
                         this.doc.addFont(file.path, file.font.name, file.font.type);
                         break;
-                    default: break;
+                    default:
                         break;
                 }
             }
+            this.ready = true;
         });
     }
     
     static preload() {
         let arr = [];
         for (let i in PDFGenerator.files) {
+            if (!PDFGenerator.files.hasOwnProperty(i)) continue;
             let file = PDFGenerator.files[i];
             if (!file.loaded) {
-                if (file.dom == undefined) arr.push(PDFGenerator._ajax(i));
+                if (file.dom === undefined) arr.push(PDFGenerator._ajax(i));
                 else arr.push(PDFGenerator._fromHTML(i))
-                
             }
             else arr.push(new Promise(resolve => {resolve(true)}));
         }
@@ -34,7 +35,16 @@ class PDFGenerator {
     }
     
     ready(func) {
-        PDFGenerator.preload().then(func);
+        PDFGenerator.preload().then(() => {
+            return new Promise((resolve) => {
+                let int = setInterval(() => {
+                    if (this.ready) {
+                        clearInterval(int);
+                        resolve(true);
+                    }
+                }, 10);
+            });
+        }).then(func);
     }
     
     static _fromHTML(i) {
@@ -56,10 +66,10 @@ class PDFGenerator {
     static _ajax(i) {
         return new Promise((resolve, reject) => {
             let file = PDFGenerator.files[i];
-            if (file.pending == undefined) file.pending = true;
+            if (file.pending === undefined) file.pending = true;
             else {
                 let int = setInterval(() => {
-                    if (file.loaded != undefined && file.loaded !== false ) {
+                    if (file.loaded !== undefined && file.loaded !== false ) {
                         clearInterval(int);
                         resolve(true);
                     }
@@ -127,7 +137,7 @@ class PDFGenerator {
         this.addImage(this.v.graphs[1], 15, 84);
         this.splitedText(
             this.v.dates.month+'’s organic traffic was '+this.v.traf.after+'. ' +
-            'Last year, during the same period, your organic traffic was '+this.v.traf.lastYear+'.' +
+            'Last year, during the same period, your organic traffic was '+this.v.traf.lastYear+'. ' +
             'Since last year, your organic traffic for this ' +
             'period has increased by '+this.v.traf.pIncreased+' ('+this.v.traf.pPercents+'%)');
         this.reference('*Year on Year Traffic Performance');
@@ -208,15 +218,27 @@ class PDFGenerator {
         this.splitedText('In the first month we research the keywords which we will target for the campaign. We also \n' +
             'set up the CMS Dashboard and both the campaign and keyword performance reporting.\n' +
             '\n' +
-            'We also perform a competitor analysis to see what Google is preferring to rank for each of your keywords. We examine the use of links, brand mentions, semantic LSI phrases social media and online profiles, until we have a clear picture of what is working well for the competition.\n' +
+            'We also perform a competitor analysis to see what Google is preferring to rank for each of your keywords. ' +
+            'We examine the use of links, brand mentions, semantic LSI phrases social media and online profiles, until ' +
+            'we have a clear picture of what is working well for the competition.\n' +
             '\n' +
-            'Finally we perform the technical audit where we examine over 180 different points that can affect your site health. This includes 404 errors, 301, 302 and canonicalisation issues, XML sitemaps and issues with the robots.txt file.\n' +
+            'Finally we perform the technical audit where we examine over 180 different points that can affect your ' +
+            'site health. This includes 404 errors, 301, 302 and canonicalisation issues, XML sitemaps and issues ' +
+            'with the robots.txt file.\n\n' +
             '\n' +
-            'All the above informs the strategy from which we develop an action plan.\n' +
-            '\n' +
-            '\n' +
-            '\n', 135);
+            'All the above informs the strategy from which we develop an action plan.', 135);
         this.bottomLine();
+        /*-----------EXAMPLE OF NEW FUNCTION USAGE IS HERE-------------------*/
+        this.addPage();
+        let block = document.getElementById('textExample');
+        this.h1(block.getElementsByTagName('h1')[0].innerText);
+        let txt = block.getElementsByTagName('div')[0].innerHTML
+            .replace(/\r|\n|\t/g,'')
+            .replace(/\s+/g,' ')
+            .replace(/^\s|\s$/g,'');
+        this.splitedText(txt, 80);
+        this.bottomLine();
+        /*-------------------------------------------------------------------*/
         return this.doc.output(type, name);
     }
     
@@ -250,6 +272,7 @@ class PDFGenerator {
         this.doc.setFontSize(10);
         let lefts = [17, 105, 122, 140, 165, 179];
         for (let i in columns) {
+            if (!columns.hasOwnProperty(i)) continue;
             let val = columns[i];
             this.doc.text(lefts[i], h + 5, val.toString());
         }
@@ -257,7 +280,7 @@ class PDFGenerator {
     
     splitText(str, size, width) {
         if (width === undefined) width = 180;
-        pdf.doc.setFont('helvetica','').setFontSize(size * 0.95);
+        pdf.doc.setFont('helvetica','').setFontSize(size);
         return this.doc.splitTextToSize(str, width);
     }
     
@@ -278,11 +301,82 @@ class PDFGenerator {
         this.doc.text(12, 268, split);
     }
     
-    splitedText(str, h) {
-        if (h == undefined) h = 217;
-        let split = this.splitText(str, 13.79)
-        this.doc.setFont('Futura PT', 'Book').setFontSize(13.79).setTextColor('#1a2b3d');
-        this.doc.text(15, h, split);
+    splitedText(S, y) {
+        S = S.replace(/\r|\n|\t/g,'')
+            .replace(/\s+/g,' ')
+            .replace(/^\s|\s$/g,'');
+        if (y === undefined) y = 217;
+        let xMin = 15;
+        let xMax = 180;
+        let x = xMin;
+        let yStep = 5;
+        let fontSize = 13.39;
+        S = S.replace(/<br\/?>/, '<br/>');
+        S = S.split(/(<.+?>)/);
+        this.doc.setFont('Futura PT', 'Book').setFontSize(fontSize).setTextColor('#1a2b3d');
+        this.doc.setDrawColor('#1a2b3d');
+        let fontStyle = {italic: false, bold: false, underline: false, h3: false};
+        for (let str of S) {
+            switch(str) {
+                case '<i>':  fontStyle.italic    = true;  break;
+                case '<b>':  fontStyle.bold      = true;  break;
+                case '<u>':  fontStyle.underline = true;  break;
+                case '<h3>': fontStyle.h3        = true; break;
+                case '</i>': fontStyle.italic    = false; break;
+                case '</b>': fontStyle.bold      = false; break;
+                case '</u>': fontStyle.underline = false; break;
+                case '</h3>': fontStyle.h3        = false; break;
+                case '<br/>':
+                    x = xMin;
+                    y += yStep;
+                    break;
+                default:
+                    if (x === xMin) str = str.replace(/^\s+/,'');
+                    if (str === '') continue;
+                    let ftStr = fontStyle.bold ? 'Bold' : 'Book';
+                    if (fontStyle.italic) ftStr += ' Italic';
+                    this.doc.setFont('Futura PT', ftStr);
+                    if (fontStyle.h3) {
+                        x = xMin;
+                        y += yStep + 25;
+                        this.doc.setFont('Futura PT', 'Bold').setFontSize(24);
+                        this.doc.text(str, x, y);
+                        y += yStep + 25;
+                    }
+                    else {
+                        this.doc.setFontSize(fontSize);
+                        let xStep, xNew;
+                        while (str.length > 0) {
+                            let subStr = "";
+                            do {
+                                let word = /\s?[^\s]+/.exec(str);
+                                if (word == null) word = /\s+/.exec(str)[0];
+                                else word = word[0];
+                                xStep = this.doc.getStringUnitWidth(subStr+word) * fontSize * 25.6 / 72;
+                                xNew = x + xStep;
+                                if (x + xStep > xNew) break;
+                                else {
+                                    subStr += word;
+                                    str = str.substr(word.length);
+                                }
+                                if (str.length === 0) break;
+                            } while (xNew < xMax);
+                            if (x === xMin) subStr = subStr.replace(/^\s+/,'');
+                            this.doc.text(subStr, x, y);
+                            if (fontStyle.underline) {
+                                this.doc.line(
+                                    x, y + 0.5,
+                                    x + this.doc.getStringUnitWidth(subStr) * fontSize * 25.6 / 72, y + 0.5
+                                );
+                            }
+                            x = xMin;
+                            if (str.length > 0) y += yStep;
+                        }
+                        x = xNew;
+                    }
+                    break;
+            }
+        }
     }
     
     bottomLine() {
@@ -291,6 +385,10 @@ class PDFGenerator {
     }
     
     h1(text) {
+        if (typeof text == 'string') {
+            text = this.splitText(text, 36, 120);
+            if (text.length == 1) text = text[0];
+        }
         this.doc.setFont('Futura PT', 'Bold').setTextColor('#0083a0').setFontSize(36);
         if (typeof text == 'object') this.doc.text(text, 14.3, 53);
         else this.doc.text(text, 14.3, 60);
